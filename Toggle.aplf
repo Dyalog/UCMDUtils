@@ -1,0 +1,10 @@
+ was←Toggle activate
+ was←'##.UCMD'≡⍥⎕OR'UCMD'
+ :If 0=⎕NC'DEBUG'
+     DEBUG←0
+ :EndIf
+ :If activate
+     '⎕SE'⎕NS'UCMD'
+ :Else
+     '⎕SE'⎕NS'⎕SE.SALTUtils.UCMD'
+ :EndIf

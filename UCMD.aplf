@@ -1,0 +1,4 @@
+r←{THIS}UCMD input
+UCMDUtils.PreUCMD         ⍝ run this
+UCMDUtils.CallUserCode ⍬  ⍝ trace into this line to debug user command
+UCMDUtils.PostUCMD        ⍝ run this

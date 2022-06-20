@@ -81,8 +81,7 @@
      :If 2=≢names ⍝ call command
          (ns fn)←names
      :EndIf
-     :If ∧/ns fn∊0 ⍝ we're done
-     :ElseIf 0<HELP
+     :If 0<HELP
          :If 0≡ns
              :For ns :In nss
                  :If ('⎕SE.',ns)≢⍕ns_←⎕SE⍎ns
@@ -154,6 +153,7 @@
              :EndSelect
          :EndIf
          ##.r←Nl msg
+     :ElseIf ∧/ns fn∊0 ⍝ we're done
      :ElseIf 0∊ns fn
          en←16 ⋄ em←'Group and command name must be specified!'
      :Else ⍝ Call!

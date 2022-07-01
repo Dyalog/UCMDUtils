@@ -1,0 +1,13 @@
+(nss fns line1s)←list;ns;ns_;fn;line1;nargs
+(nss fns line1s)←⊂0⍴⊂''
+ :For ns :In ⎕SE.⎕NL ¯9
+     :If ('⎕SE.',ns)≢⍕ns_←⎕SE⍎ns ⍝ namespace must match its display form
+         :Continue
+     :EndIf
+     :For fn :In ns_.⎕NL ¯3
+         line1←2⊃(ns_.⎕NR fn),'' ''
+         :If '⍝]'≡2↑line1~' '
+            (nss fns line1s),∘⊂←ns fn line1
+         :EndIf
+     :EndFor
+ :EndFor

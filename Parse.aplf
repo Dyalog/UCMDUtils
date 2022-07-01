@@ -1,0 +1,9 @@
+ Parse←{
+     ⍺←''
+     opts←'''[^'']+''|"[^"]+"' '-\?+|⍝.*'⎕R'&' ''⊢⍺
+     parser←⎕NEW ⎕SE.Parser(⌽'^\s*(\S+)\s*' '^\s*' '.+'⎕S'nargs=\1' '' '&'⊢'^\s*⍝]'⎕R''⊢⍵)
+     opts parser.Parse⍤⊣←⍬
+     opts.THIS←##.THIS
+     opts.HELP←HELP
+     1:shy←opts
+ }

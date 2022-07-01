@@ -1,22 +1,10 @@
- PreUCMD;nss;ns;fn;params;fns;line1;parser;em;⎕IO;⎕ML;ns_;en;HELP;nargs;msg;cmd;names;cands;iName;args;help;Nl;Parse
+ PreUCMD;ns;fn;fns;line1;⎕IO;⎕ML;en;HELP;nargs;msg;cmd;names;iName;args;help;Nl;nss;line1s;occur;count;mask;toc;em;syntax;desc
  ⎕IO←1 ⋄ ⎕ML←1 ⋄ en←0 ⋄ em←'' ⋄ msg←0⍴⊂'' ⋄ CallUserCode←{}
  :If 0=⎕NC'DEBUG'
      DEBUG←0
  :EndIf
 
- :Section UTILS
-     Nl←1↓∘∊(⎕UCS 13)∘,¨
-     Parse←{
-         ##.input('''[^'']+''|"[^"]+"' '-\?+|⍝.*'⎕R'&' ''⊣)←⍬
-         parser←⎕NEW ⎕SE.Parser(⌽'^\s*(\S+)\s*' '^\s*' '.+'⎕S'nargs=\1' '' '&'⊢'^\s*⍝]'⎕R''⊢⍵)
-         ##.input parser.Parse⍤⊣←⍬
-         ##.input.THIS←##.THIS
-         ##.input.HELP←HELP
-         ##.input.fn←fn
-         ##.input.ns←ns
-         1:shy←##.input
-     }
- :EndSection
+ Nl←1↓∘∊(⎕UCS 13)∘,¨
 
  ##.input('''[^'']+''|"[^"]+"' '⍝.*'⎕R'&' ''⊣)←⍬ ⍝ strip comments
 
@@ -29,43 +17,76 @@
  ##.input('''[^'']+''|"[^"]+"' '-\?+'⎕R'&' ''⊣)←⍬ ⍝ strip help
 
  names←'.'(≠⊆⊢)⎕C cmd
- nss←⎕SE.⎕NL ¯9
- :If 0=≢names ⍝ ]
-     (ns fn)←0
- :AndIf 0=HELP
-     msg,←⊂']' '⍝ this message'
-     msg,←⊂'] -?' '⍝ list all command names'
-     msg,←⊂'] -??' '⍝ one-line description of all commands'
-     msg,←⊂']grp -?' '⍝ list commands in group "grp"'
-     msg,←⊂']grp.cmd  -?' '⍝ brief description of command cmd in group "grp"'
-     msg,←⊂']grp.cmd -??' '⍝ more thorough description of "]cmd.grp"'
-     msg,←⊂']grp.cmd -???' '⍝ even more thorough description, etc.'
-     ##.r←Nl'' '─── User Command System Syntax Overview ───',↓⍕↑msg
 
- :Else
-     :If 1=≢names ⍝ call command if unambiguous
-     :AndIf '*'≡⎕STACK[3;2] ⍝ called from session
-         cands←0 2⍴⊂''
-         :For ns :In nss
-             :If ('⎕SE.',ns)≢⍕ns_←⎕SE⍎ns
-                 :Continue
-             :EndIf
-             fns←ns_.⎕NL ¯3
-             fns⌿⍨←names≡¨⎕C fns
-             :For fn :In fns
-                 line1←2⊃(ns_.⎕NR fn),'' ''
-                 :If '⍝]'≡2↑line1~' '
-                     cands⍪←ns fn
-                 :EndIf
-             :EndFor
-         :EndFor
-         :Select ≢cands
-         :Case 0
+ (nss fns line1s)←list
 
-         :Case 1
-             names←⊣⌿cands
+ ⍝ ]    syntax help
+ ⍝ ] -? list all
+ ⍝ ] -?? list all with 1-line descriptions
+
+ ⍝ ]grp -? list with 1-line descr
+ ⍝ ]cmd -?.. help if unambiguous
+ ⍝ ]grp.cmd -?...
+
+ ⍝ ]cmd call if unamb
+ ⍝ ]grp.cmd
+ ⍝ ]grp → ]grp.grp if unamb
+
+ ⍝ ] 4S
+
+ :If 0=≢names ⍝ list
+     :If 0=HELP ⍝ ]
+         msg,←⊂']' '⍝ this message'
+         msg,←⊂'] -?' '⍝ list all command names'
+         msg,←⊂'] -??' '⍝ one-line description of all commands'
+         msg,←⊂''
+         msg,←⊂']grp. -?' '⍝ list commands in group "grp"'
+         msg,←⊂']grp.cmd -?' '⍝ brief description of command cmd in group "grp"'
+         msg,←⊂']grp.cmd -??' '⍝ more thorough description of "]cmd.grp"'
+         msg,←⊂']grp.cmd -???' '⍝ further description, etc.'
+         msg,←⊂'' ''
+         msg,←⊂']grp.cmd [args]' '⍝ call command cmd in group "grp"'
+         msg←'' '─── User Command System Syntax Overview ───',↓⍕↑msg
+         msg,←'' 'Group name can be omitted if the call is unambiguous'
+
+     :Else  ⍝ ] -?...
+         :If 0=≢fns
+             msg,←⊂'No functions declare a user command interface!'
          :Else
-             msg,←⊂'Ambigous user command: ]',cmd
+             :If 1=HELP ⍝ ] -? (only names)
+                 msg←(1 ⎕C nss){⊂(']',⊃⍺)(⍕⍵)}⌸fns ⍝ GROUP   name1  name2  ...
+             :Else      ⍝ ] -?? (names and 1-liner descriptions)
+                 ##.input←Parse''
+                 ##.input.HELP←1
+                 :For ns fn line1 :InEach nss fns line1s
+                     nargs←⍎⊃'0',⍨'\d+'⎕S'&'⍠'ML' 1⊢line1
+                     syntax←']',(1 ⎕C ns),'.',fn
+                     :Trap 6
+                         desc←'⍝ ',⊃⊆##.input(ns ⎕SE.⍎fn)nargs⍴⊂''
+                     :Else
+                         desc←'⍝ (no description available)'
+                     :EndTrap
+                     msg,←⊂syntax desc
+                 :EndFor
+             :EndIf
+             msg←'' '─── All User Commands ───',↓⍕↑msg
+         :EndIf
+     :EndIf
+     ##.r←Nl msg
+ :ElseIf 3≤≢names ⍝ ]abc.def.ghi
+ :OrIf ¯1=40 ⎕ATX cmd
+     en←2 ⋄ em←Nl'Invalid user command call. For syntax information, do:' '    ]'
+ :Else ⍝ ]cmd or ]grp.cmd or ]grp (which means ]grp.grp)
+     toc←nss,⍪fns
+     :If 1=≢names ⍝ call command if unambiguous
+         count←+/,occur←names≡¨⍥⎕C toc
+         :If '*'≢⎕STACK[3;2] ⍝ called from session
+             en←11 ⋄ em←'Both group and command names must be specified when calling user commands under program control.'
+         :ElseIf 0=count
+         :OrIf (1=count)∧(∨/⊣/occur)
+             en←6 ⋄ em←Nl'Unknown user command. To list all commands, do:' '    ] -?'
+         :ElseIf (2≤count)∧(1≠+/,1 1⍷occur)∧(1≠+/⊢/occur) ⍝ only allow 2 if grp.grp or there's a single fn of that name (ignoring any grp of that name)
+             en←16 ⋄ msg,←⊂'Ambigous user command: ]',cmd
              msg,←⊂'Specify one of:'
 
              args←'^ *' ' +$'⎕R' ' ''⊢##.input
@@ -73,122 +94,41 @@
              help←' -',HELP⍴'?'
              help/⍨←0<HELP
 
-             msg,←,∘(args,help)¨{'    ]',⍺,'.',⍵}/cands
-             ##.r←Nl msg
-             (ns fn)←0
-         :EndSelect
-     :EndIf
-     :If 2=≢names ⍝ call command
-         (ns fn)←names
-     :EndIf
-     :If 0<HELP
-         :If 0≡ns
-             :For ns :In nss
-                 :If ('⎕SE.',ns)≢⍕ns_←⎕SE⍎ns
-                     :Continue
-                 :EndIf
-                 fns←ns_.⎕NL ¯3
-                 :For fn :In fns
-                     line1←2⊃(ns_.⎕NR fn),'' ''
-                     :If '⍝]'≡2↑line1~' '
-                         nargs←⍎⊃'0',⍨'\d+'⎕S'&'⍠'ML' 1⊢line1
-                         ns ⎕C⍨←1
-                         :If 1=HELP ⍝ summary
-                             msg,←⊂ns fn
-                         :Else
-                             ##.input.HELP←1
-                             msg,←⊂(']',ns,'.',fn)('⍝ ',⊃⊆##.input(ns_.⍎fn)nargs⍴⊂'')
-                         :EndIf
-                     :EndIf
-                 :EndFor
-             :EndFor
-             :If 0=≢msg
-                 msg,←⊂'No functions declare a user command interface!'
-             :Else
-                 :If 1=HELP ⍝ only names
-                     msg←⊃{⊂(⊃⍺)(⍕⍵)}⌸/↓⍉↑msg ⍝ GROUP   name1  name2  ...
-                 :EndIf
-                 msg←'' '─── All User Commands ───',↓⍕↑msg
-             :EndIf
-         :Else
-             nss/⍨←(⎕C nss)∊⊂ns
-             :Select ≢nss
-             :Case 1
-                 ns_←⎕SE⍎ns←⊃nss
-                 fns←ns_.⎕NL ¯3
-                 :If 0≡fn
-                     :For fn :In fns
-                         line1←2⊃(ns_.⎕NR fn),'' ''
-                         :If '⍝]'≡2↑line1~' '
-                             nargs←⍎⊃'0',⍨'\d+'⎕S'&'⍠'ML' 1⊢line1
-                             Parse line1
-                             msg,←⊂(']',ns,'.',fn)('⍝ ',⊃⊆##.input(ns_.⍎fn)nargs⍴⊂'')
-                         :EndIf
-                     :EndFor
-                     msg←Nl''('─── All User Commands in Group "]',ns,'" ───'),↓⍕↑msg
-                 :Else
-                     fns/⍨←(⎕C fns)∊⊂fn
-                     :Select ≢fns
-                     :Case 1
-                         fn←⊃fns
-                         line1←2⊃(ns_.⎕NR fn),'' ''
-                         :If '⍝]'≡2↑line1~' '
-                             nargs←⍎⊃'0',⍨'\d+'⎕S'&'⍠'ML' 1⊢line1
-                             Parse line1
-                             msg,←⊂(']',ns,'.',fn)('⍝ ',⊃⊆##.input(ns_.⍎fn)nargs⍴⊂'')
-                             msg←''('─── User Command Documentation for "]',ns,'.',fn,'" ───'),↓⍕↑msg
-                         :Else
-                             msg←⊂'Function "⎕SE.',ns,'.',fn,'" does not declare a user command interface!'
-                         :EndIf
-                     :Case 0
-                         en←6 ⋄ em←'Function "⎕SE.',ns,'.',fn,'" not found!'
-                     :Else
-                         en←5 ⋄ em←'Only one function with the case-insensitive name "]',fn,'" may exist in ⎕SE.',ns,'!'
-                     :EndSelect
-                 :EndIf
-             :Case 0
-                 en←6 ⋄ em←'Command group "]',ns,'" not found!'
-             :Else
-                 en←5 ⋄ em←'Only one namespace with the case-insensitive name "]',ns,'" may exist in ⎕SE!'
-             :EndSelect
+             (nss fns)/⍨←⊂⊢/occur
+             msg,←,∘(args,help)¨nss{'    ]',⍺,'.',⍵}¨fns
+             em←Nl msg
+         :Else ⍝ count=1 or grp.grp
+             names←⊣⌿toc⌿⍨⊢/occur
          :EndIf
-         ##.r←Nl msg
-     :ElseIf ∧/ns fn∊0 ⍝ we're done
-     :ElseIf 0∊ns fn
-         en←16 ⋄ em←'Group and command name must be specified!'
-     :Else ⍝ Call!
-         nss/⍨←(⎕C nss)∊⊂ns
-         :Select ≢nss
-         :Case 1
-             ns_←⎕SE⍎ns←⊃nss
-             fns←ns_.⎕NL ¯3
-             fns/⍨←(⎕C fns)∊⊂fn
-             :Select ≢fns
-             :Case 1
-                 fn←⊃fns
-                 line1←2⊃(ns_.⎕NR fn),'' ''
-                 :If 1=≢'^\s*⍝]'⎕S 3⊢line1
-                     Parse line1
-                     CallUserCode←##.input{0∩⎕SE.UCMDUtils.DEBUG::⎕SE.UCMDUtils.TrapUCMD ⋄ 85:: ⋄ 1:##.r←1(85⌶)'⍺⍺⎕SE.',⍺⍺.ns,'.',⍺⍺.fn,'⍺⍺.Arguments' ⋄ ⍺⍺}
-                 :Else
-                     en←11 ⋄ em←'Function ⎕SE.',ns,'.',fn,' does not declare a user command interface!'
-                 :EndIf
-             :Case 0
-                 en←6 ⋄ em←'Command "]',ns,'.',fn,'" not found!'
-             :Else
-                 en←5 ⋄ em←'Ambiguous command "]',ns,'.',fn,'"!'
-             :EndSelect
-         :Case 0
-             en←6 ⋄ em←'Command group "]',ns,'" not found!'
-         :Else
-             en←5 ⋄ em←'Ambiguous command group "]',ns,'"!'
-         :EndSelect
      :EndIf
      :If ×en
          :If 2=≢⎕SI
              CallUserCode←{⍞←⍵}'USER COMMAND ERROR: ',em,∘⎕UCS 13⍨
          :Else
              CallUserCode←⎕SIGNAL∘⊂('EN'en)('EM' 'USER COMMAND ERROR')('Message'em)⍨
+         :EndIf
+     :Else
+         (ns fn)←names
+         ⍝ specific known existing command
+         line1←line1s⊃⍨toc⍳ns fn
+         :If 0<HELP
+             nargs←⍎⊃'0',⍨'\d+'⎕S'&'⍠'ML' 1⊢line1
+             ##.input←Parse line1
+             msg,←⊂']',(1 ⎕C ns),'.',fn
+             :Trap 6
+                 msg,←⊆##.input(ns ⎕SE.⍎fn)nargs⍴⊂''
+             :Else
+                 msg,←⊂'(no help available)'
+             :EndTrap
+             msg←''('─── User Command Documentation for "]',ns,'.',fn,'" ───'),⊆msg
+             ##.r←Nl msg
+         :Else ⍝ Call!
+             ##.input←Parse line1
+             '##.input'⎕NS'ns' 'fn'
+             CallUserCode←##.input{
+                 0∩⎕SE.UCMDUtils.DEBUG::⎕SE.UCMDUtils.TrapUCMD
+                 85::
+                 ##.r←1(85⌶)'⍺⍺⎕SE.',⍺⍺.ns,'.',⍺⍺.fn,'⍺⍺.Arguments'}
          :EndIf
      :EndIf
  :EndIf

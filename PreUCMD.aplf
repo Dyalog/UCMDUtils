@@ -14,7 +14,7 @@
 
  input←string'^\s*]?\s*|\s*(⍝.*)?$'⎕R'&' ''⊢##.input ⍝ strip leading ] and spaces, comments, and trailing spaces
 
- (ns input)←('^(',name,')?\.')Chop input
+ (ns input)←('^(',name,'\.)?')Chop input
  (fn input)←('^(',name,')?')Chop input
  (HELP input)←'-\?+'Chop input
  HELP←⌈/0,¯1+≢HELP

@@ -1,0 +1,15 @@
+ msg←overview
+ msg←,⊂']' '⍝ this message'
+ msg,←⊂'] -?' '⍝ list all command names'
+ msg,←⊂'] -??' '⍝ one-line description of all commands'
+ msg,←⊂''
+ msg,←⊂']grp.' '⍝ describe group "grp"'
+ msg,←⊂']grp. -?' '⍝ list all commands in group "grp"'
+ msg,←⊂']grp. -??' '⍝ one-line description of commands in group "grp"'
+ msg,←⊂''
+ msg,←⊂']grp.cmd' '⍝ call command cmd in group "grp" (with inputs if applicable)'
+ msg,←⊂']grp.cmd -?' '⍝ brief description of command "cmd" in group "grp"'
+ msg,←⊂']grp.cmd -??' '⍝ further description of command "cmd" in group "grp", etc.'
+ msg←↓⍕↑msg
+ msg,⍨←⊂'─── User Command System Syntax Overview ───'
+ msg,←'' 'Group name can be omitted if the call is unambiguous'

@@ -1,0 +1,31 @@
+ msg←Describe(nss fns line1s);ns;fn;line1;nargs;syntax;desc;toc;occur;no
+ toc←nss,⍪fns
+ msg←0⍴⊂'' ''
+ no←'⍝ (no description available)'
+ :For ns fn line1 :InEach nss fns line1s
+     nargs←⍎⊃'0',⍨'\d+'⎕S'&'⍠'ML' 1⊢line1
+     syntax←']',(1 ⎕C ns),'.',fn
+     :Trap 6
+         desc←'⍝ ',⊃⊆##.input(ns ⎕SE.⍎fn)nargs⍴⊂''
+     :Else
+         desc←no
+     :EndTrap
+     msg,←⊂syntax desc
+ :EndFor
+ no←'o '⎕R'o group '⊢no
+ :For ns :In ∪nss
+     desc←''
+     :If 1∊occur←⊣/toc⍷⍥⊆⍥⎕C⍨2⍴⊂ns
+         (ns fn)←⊣/occur⌿toc
+         line1←⊃occur/line1s
+         nargs←⍎⊃'0',⍨'\d+'⎕S'&'⍠'ML' 1⊢line1
+         ##.input.HELP←¯1 ⍝ ask for group description
+         :Trap 6
+             desc←1⌽')(',⊃⊆##.input(ns ⎕SE.⍎fn)nargs⍴⊂''
+         :EndTrap
+     :EndIf
+     msg,←⊂(lf,'── ',1 ⎕C ns,' ──')desc
+ :EndFor
+ msg←msg[⍋~∘(' ─]',lf)¨¨msg]
+ msg←↓⍕↑msg
+ msg←'( ──) +(\S.+\S)'⎕R' \2\1'⊢msg

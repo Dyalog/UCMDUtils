@@ -1,9 +1,12 @@
  Parse←{
      ⍺←''
+     nargs←⍎⊃'0',⍨'\d+'⎕S'&'⍠'ML' 1⊢⍵
      opts←'''[^'']+''|"[^"]+"' '-\?+|⍝.*'⎕R'&' ''⊢⍺
      parser←⎕NEW ⎕SE.Parser(⌽'^\s*(\S+)\s*' '^\s*' '.+'⎕S'nargs=\1' '' '&'⊢'^\s*⍝]'⎕R''⊢⍵)
      opts parser.Parse⍤⊣←⍬
      opts.THIS←##.THIS
      opts.HELP←HELP
-     1:shy←opts
+     opts.ns←ns
+     opts.fn←fn
+     1:shy←opts nargs
  }

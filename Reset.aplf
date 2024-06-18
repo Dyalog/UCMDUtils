@@ -1,0 +1,4 @@
+ msg←{opts}Reset args;nss;fns;line1s
+⍝] 0
+ (nss fns line1s)←list
+ msg←'Found ',(≢fns),' user commands in ',(≢∪nss),' groups'

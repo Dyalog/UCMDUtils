@@ -4,9 +4,12 @@
      opts←'''[^'']+''|"[^"]+"' '-\?+|⍝.*'⎕R'&' ''⊢⍺
      parser←⎕NEW ⎕SE.Parser(⌽'^\s*(\S+)\s*' '^\s*' '.+'⎕S'nargs=\1' '' '&'⊢'^\s*⍝]'⎕R''⊢⍵)
      opts parser.Parse⍤⊣←⍬
-     opts.THIS←##.THIS
-     opts.HELP←HELP
-     opts.ns←ns
-     opts.fn←fn
+    ⍝ special members not expected in a normal API fn call
+     opts.NS←ns
+     opts.FN←fn
+     opts.UCMD←1       ⍝ this is a ucmd call
+     opts.THIS←##.THIS ⍝ from here
+     opts.HELP←HELP    ⍝ number of ?s in -???...
+     opts.EXEC←EXEC    ⍝ ⍎ where we were called from
      1:shy←opts nargs
  }

@@ -1,6 +1,3 @@
- {old}←Run dir;nss;fns;new
- (nss fns)←1⎕C@1⊢ 2↑⎕SE.UCMDUtils.list
- new←']',¨nss,¨'.'
- new,←new,¨fns
- new,←']',¨fns
- old←2350⌶∪new
+ {ok}←Run dir
+ ok←1
+ {}list

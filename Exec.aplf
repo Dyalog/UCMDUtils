@@ -1,0 +1,15 @@
+ val←EXEC expr;ExecUp;up;val
+ ⍝ Execute at caller (both namespace and level of stack)
+ :Trap 0
+     ExecUp←86 ⎕SE.THIS.⌶
+    ⍝ find out how far up the stack we need to go
+     up←0
+     :Repeat
+         up+←1
+     :Until ((0=≢)∨('UCMD'≡⊃))up ExecUp'⎕SI'
+     up+←1
+
+     val←up ExecUp expr
+ :Else
+     ⎕DMX.EN ⎕SIGNAL⍨⍬(⊢↓⍨'⍎'=⍴)errMsg
+ :EndTrap

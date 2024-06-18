@@ -1,0 +1,6 @@
+ {old}←AutoComplete(nss fns);new
+ nss ⎕C⍨←1
+ new←']',¨nss,¨'.'
+ new,←new,¨fns
+ new,←']',¨fns
+ old←2350⌶∪new

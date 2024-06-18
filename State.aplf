@@ -5,6 +5,8 @@
  :EndIf
  :If 1∊activate
      '⎕SE'⎕NS'UCMD'
+     ⎕SE.UCMDUtils.Run ⍬
  :ElseIf 0∊activate
      '⎕SE'⎕NS'⎕SE.SALTUtils.UCMD'
+     ⎕SE.UCMD'←ureset'
  :EndIf

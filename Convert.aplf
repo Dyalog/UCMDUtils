@@ -1,0 +1,22 @@
+ res←Convert grp;cmds;cmd;src;ref;spec;nr;ns;state;parse;list
+ ⍝ creates namespace in ⎕SE that can be ]export'ed to StartupSession/grp
+ state←State 0
+ cmds←'^  (\w+)'⎕S'\1'↓⎕SE.UCMD grp,' -?'
+ {}⎕SE.UCMD'udebug on'
+ res←⍎grp ⎕SE.⎕NS ⍬
+ 'res._'⎕NS⍬
+ :For cmd :In cmds
+     ⎕SE.UCMD'src←',grp,'.',cmd,' -?'
+     ns←res._.⎕FIX 8↓4⌷⎕FMT src
+     nr←,⊂'r←{opts}',cmd,' args'
+     list←,ns.List
+     nr,←⊂'⍝]',(list⊃⍨list.Name⍳⊆cmd).Parse
+     ns←⍕ns
+     nr,←⊂':If 0≠opts.HELP'
+     nr,←⊂'    (opts.HELP-1)',ns,'.Help''',cmd,''''
+     nr,←⊂':Else'
+     nr,←⊂'    r←',ns,'.Run''',cmd,'''opts'
+     nr,←⊂':EndIf'
+     2 res.⎕FIX nr
+ :EndFor
+ {}State state
